@@ -1,0 +1,5 @@
+aplib_entry
+aP_getbit
+aP_getgamma
+aplib_main
+aplib_end
