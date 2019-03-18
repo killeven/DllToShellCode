@@ -3,7 +3,7 @@ Fast Conversion Windows Dynamic Link Library To ShellCode
 ##  Features
 * Support 32-bits and 64-bits
 * Support Compression(using ntdll RtlCompressBuffer function or aplib)
-* Support two modes(only call dllmain or return the address of export function)
+* Support two modes
   * Direct invoke dllmain(lpReserved as parameter),if you don't want using the dll internal functions
   * Invoke the shellcode will return the address of export function, so you can use it in anywhere
 ## OverView
