@@ -62,6 +62,8 @@ extern "C" {
 }
 #endif  // __cplusplus
 
+#pragma optimize("ts", on)
+
 void *main_entry() {
 	return main_main();
 };
@@ -236,6 +238,8 @@ void *main_main() {
 
 void main_end() {
 };
+
+#pragma optimize("ts", off)
 
 #ifdef _WIN64
 # define OUT_FILE_NAME "main_x64.bin"

@@ -30,7 +30,7 @@ extern "C" {
 }
 #endif  // __cplusplus
 
-#pragma optimize("ts", off)
+#pragma optimize("ts", on)
 
 unsigned int ntdll_entry(const void *source, unsigned int srclen, void *destination, unsigned int dstlen) {
 	return ntdll_main(source, srclen, destination, dstlen);
@@ -63,7 +63,7 @@ unsigned int ntdll_main(const void *source, unsigned int srclen, void *destinati
 void ntdll_end() {
 };
 
-#pragma optimize("ts", on)
+#pragma optimize("ts", off)
 
 #ifdef _WIN64
 # define OUT_FILE_NAME "ntdll_x64.bin"

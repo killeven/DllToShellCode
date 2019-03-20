@@ -10,12 +10,12 @@
 #pragma pack(push)
 #pragma pack(1)
 typedef struct main_config {
-	uint8_t invokeMode;			// 0 = 调用dllmain lpReserved[param], 1 = 返回导出函数地址
+	uint8_t invokeMode;			    // 0 = 调用dllmain lpReserved[param], 1 = 返回导出函数地址
 	uint32_t depackCodeOffset;	// 解压缩代码偏移 偏移量基于main_config开始
-	uint32_t unpackSize;		// 未压缩时的大小
-	uint32_t packedSize;		// 压缩后的大小
-	uint32_t dllDataOffset;		// dll数据偏移 偏移量基于main_config开始
-	char param[100];			// dllmain参数或导出函数名称
+	uint32_t unpackSize;		    // 未压缩时的大小
+	uint32_t packedSize;		    // 压缩后的大小
+	uint32_t dllDataOffset;		  // dll数据偏移 偏移量基于main_config开始
+	char param[100];			      // dllmain参数或导出函数名称
 } main_config_t, *main_config_p;
 #pragma pack(pop)
 
@@ -23,8 +23,8 @@ static void show_syntax() {
 	printf("DllToShellCode v0.1 [killeven]\n"
 		"  Syntax\n\n"
 		"	BinToHex:         DllToShellCode b <in_file> <out_file>\n"
-		"	Compress File:    DllToShellCode c mode <in_file> <out_file>\n"
-		"	Dll To ShellCode: DllToShellCode d shellcode_mode <param> compress_mode <in_file> <out_file>\n\n"
+    "	Compress File:    DllToShellCode c <mode> <in_file> <out_file>\n"
+    "	Dll To ShellCode: DllToShellCode d <shellcode_mode> <param> <compress_mode> <in_file> <out_file>\n\n"
 		"	Compress File mode\n"
 		"	\t0 = compress with ntdll\n"
 		"	\t1 = compress with aplib\n"
@@ -53,13 +53,17 @@ static int bin_to_hex(char *infile, char *outfile) {
 		return -1;
 	}
 	fseek(in, 0, SEEK_END);
-	int fileSize = (int)ftell(in);
+	size_t fileSize = ftell(in);
 	fseek(in, 0, SEEK_SET);
-	int loop = fileSize / 30;
-	int rest = fileSize % 30;
+  if (fileSize == -1) {
+    printf("[-] get file size error. file name = %s.\n", infile);
+    return -1;
+  }
+	size_t loop = fileSize / 30;
+  size_t rest = fileSize % 30;
 	char buf[30];
-	fprintf_s(out, "char ShellCode[%d] = {\n", fileSize);
-	for (int i = 0; i < loop; i++) {
+	fprintf_s(out, "char ShellCode[%ld] = {\n", fileSize);
+  for (size_t i = 0; i < loop; i++) {
 		fread(buf, 1, 30, in);
 		fputs("\t\"", out);
 		for (int j = 0; j < 30; j++) {
@@ -70,7 +74,7 @@ static int bin_to_hex(char *infile, char *outfile) {
 	if (rest > 0) {
 		fputs("\t\"", out);
 		fread(buf, 1, rest, in);
-		for (int j = 0; j < rest; j++) {
+    for (size_t j = 0; j < rest; j++) {
 			fprintf_s(out, "\\x%02x", buf[j] & 0xFF);
 		}
 		fputs("\"\n", out);
@@ -102,6 +106,10 @@ static int compress_file(char mode, char *in_file, char *out_file) {
 	fseek(in, 0, SEEK_END);
 	int fileSize = (int)ftell(in);
 	fseek(in, 0, SEEK_SET);
+  if (fileSize == -1) {
+    printf("[-] get file size error.\n");
+    return -1;
+  }
 	void *fileBuf = malloc(fileSize);
 	void *compressedBuf = malloc(fileSize);
 	if (fileBuf == 0 || compressedBuf == 0) {
@@ -120,7 +128,7 @@ static int compress_file(char mode, char *in_file, char *out_file) {
 		ret = aplib_compress(fileBuf, fileSize, compressedBuf, fileSize);
 	}
 	if (ret != COMPRESS_ERROR) {
-		printf("[*] compress sucess orign size = %d, compressed size = %d.\n", fileSize, ret);
+		printf("[*] compress success orign size = %d, compressed size = %d.\n", fileSize, ret);
 		fwrite(compressedBuf, 1, ret, out);
 	} else {
 		printf("[-] compress error.\n");
@@ -183,8 +191,12 @@ static int dll_to_shellcode(char shellcode_mode, char *param, char compress_mode
 		return -1;
 	}
 	fseek(in, 0, SEEK_END);
-	uint32_t inFileSize = ftell(in);
+	int inFileSize = (int)ftell(in);
 	fseek(in, 0, SEEK_SET);
+  if (inFileSize == -1) {
+    printf("[-] get file size error.\n");
+    return -1;
+  }
 	void *fileBuf = malloc(inFileSize);
 	if (fileBuf == 0) {
 		_fcloseall();
@@ -230,7 +242,7 @@ static int dll_to_shellcode(char shellcode_mode, char *param, char compress_mode
 		fwrite(&config, 1, sizeof(config), out);
 		printf("[*] writing dll data to file, size = %d.\n", inFileSize);
 		fwrite(fileBuf, 1, inFileSize, out);
-		printf("[+] gen shellcode sucess, total size = %d.\n", mainCodeSize + sizeof(config) + inFileSize);
+		printf("[+] gen shellcode success, total size = %d.\n", mainCodeSize + sizeof(config) + inFileSize);
 		fflush(out);
 		_fcloseall();
 		free(fileBuf);
@@ -273,7 +285,7 @@ static int dll_to_shellcode(char shellcode_mode, char *param, char compress_mode
 	fwrite(decompressCode, 1, decompressCodeSize, out);
 	printf("[*] write compressed data to file, size = %d.\n", compressedSize);
 	fwrite(compressed, 1, compressedSize, out);
-	printf("[+] gen shellcode sucess, total size = %d.\n", mainCodeSize + sizeof(config) + decompressCodeSize + compressedSize);
+	printf("[+] gen shellcode success, total size = %d.\n", mainCodeSize + sizeof(config) + decompressCodeSize + compressedSize);
 	fflush(out);
 	_fcloseall();
 	free(fileBuf);
@@ -295,7 +307,7 @@ int main(int argc, char* argv[])
 		CHECK_PARAM(argv[1]);
 		if (toupper(argv[1][0]) != 'C') EXIT_SHOW_SYNTAX;
 		printf("[Compress Mode]\n\t"
-			"mode = %c, input = %s, output = %s ].\n", argv[2][0], argv[3], argv[4]);
+			"mode = %c, input = %s, output = %s.\n", argv[2][0], argv[3], argv[4]);
 		return compress_file(argv[2][0], argv[3], argv[4]);
 	}
 	if (argc == 7) {
@@ -303,7 +315,7 @@ int main(int argc, char* argv[])
 		CHECK_PARAM(argv[2]);
 		CHECK_PARAM(argv[4]);
 		if (toupper(argv[1][0]) != 'D') EXIT_SHOW_SYNTAX;
-		printf("[Dll to ShellCode Mode]\n\t"
+		printf("[DlltoShellCode Mode]\n\t"
 			"shellcode_mode = %c, param = %s, compress_mode = %c, input = %s, output = %s.\n",
 			argv[2][0], argv[3], argv[4][0], argv[5], argv[6]);
 		return dll_to_shellcode(argv[2][0], argv[3], argv[4][0], argv[5], argv[6]);

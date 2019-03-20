@@ -31,7 +31,7 @@ extern "C" {
 }
 #endif  // __cplusplus
 
-#pragma optimize("ts", off)
+#pragma optimize("ts", on)
 
 unsigned int __cdecl aplib_entry(const void *source, unsigned int srclen, void *destination, unsigned int dstlen) {
 	return aplib_main(source, srclen, destination, dstlen);
@@ -185,7 +185,7 @@ unsigned int aplib_main(const void *source, unsigned int srclen, void *destinati
 void aplib_end() {
 }
 
-#pragma optimize("ts", on)
+#pragma optimize("ts", off)
 
 #ifdef _WIN64
 # define OUT_FILE_NAME "aplib_x64.bin"
