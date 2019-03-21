@@ -8,6 +8,7 @@ Fast Conversion Windows Dynamic Link Library To ShellCode
   * Invoke the shellcode will return the address of export function, so you can use it in anywhere
 ## OverView
 >Few Assembly used, alomost all code are developed in C language(only use assembly language in 32-bits self-delta)
+>Develop by Visual Studio 2013
 
 ##  Usage
         BinToHex:         DllToShellCode b <in_file> <out_file>
