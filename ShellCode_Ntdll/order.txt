@@ -1,6 +1,7 @@
 ntdll_entry
 init_func
 calc_hash
+calc_hashW2
 get_kernel32_base
 get_proc_address_from_hash
 ntdll_main

@@ -63,4 +63,6 @@ typedef void (__stdcall *_RtlCopyMemory)(IN VOID UNALIGNED  *Destination,
 typedef void(__stdcall *_RtlMoveMemory)(IN VOID UNALIGNED  *Destination,
 	IN CONST VOID UNALIGNED  *Source, IN SIZE_T  Length);
 
+#define Kernel32Lib_Hash 0x1cca9ce6
+
 #endif  // SHELLCODE_GLOBAL_H
